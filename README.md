@@ -30,7 +30,7 @@ Preencher antes da entrega:
 
 1. Enzo Almeida — RM556900
 2. Gabriel de Mello — RM554421
-3. GUilherme Moreira - RM557290
+3. Guilherme Moreira - RM557290
 
 
 ## Tecnologias e versões-base
