@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: alertasp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: alertasp
+      POSTGRES_USER: alertasp
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-alertasp_local_only}
+    ports:
+      - "5433:5432"
+    volumes:
+      - alertasp-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alertasp -d alertasp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  alertasp-postgres-data:

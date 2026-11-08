@@ -1,0 +1,48 @@
+### Listar pontos
+GET http://localhost:8080/api/v1/monitoring-points?page=0&size=20
+
+### Filtrar pontos por bairro
+GET http://localhost:8080/api/v1/monitoring-points?neighborhood=Bela%20Vista&active=true
+
+### Consultar ponto demonstrativo 1
+GET http://localhost:8080/api/v1/monitoring-points/1
+
+### Criar ponto
+POST http://localhost:8080/api/v1/monitoring-points
+Content-Type: application/json
+
+{
+  "name": "Ponto de teste da equipe",
+  "street": "Rua de teste",
+  "neighborhood": "Centro",
+  "city": "São Paulo",
+  "latitude": -23.5505,
+  "longitude": -46.6333,
+  "active": true
+}
+
+### Listar ocorrências
+GET http://localhost:8080/api/v1/flood-occurrences?page=0&size=20
+
+### Filtrar ocorrências
+GET http://localhost:8080/api/v1/flood-occurrences?status=REPORTED&neighborhood=Bela%20Vista
+
+### Registrar ocorrência (ponto 1 criado pela migration V2)
+POST http://localhost:8080/api/v1/flood-occurrences
+Content-Type: application/json
+
+{
+  "monitoringPointId": 1,
+  "description": "Exemplo acadêmico de acúmulo de água na via.",
+  "severity": "MEDIUM",
+  "source": "DEMONSTRATION",
+  "occurredAt": "2026-11-05T12:00:00-03:00"
+}
+
+### Atualizar status: substitua 1 pelo id retornado no POST
+PATCH http://localhost:8080/api/v1/flood-occurrences/1/status
+Content-Type: application/json
+
+{
+  "status": "CONFIRMED"
+}
