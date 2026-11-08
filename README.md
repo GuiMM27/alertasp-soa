@@ -2,7 +2,6 @@
 
 **Disciplina:** Arquitetura Orientada a Serviços (SOA) e Web Services  
 **Tema:** CitizenTech — soluções tecnológicas para desafios das cidades  
-**Repositório:** https://github.com/GuiMM27/alertasp-soa
 
 ## Sobre o projeto
 
