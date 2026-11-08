@@ -28,11 +28,10 @@ relacional, migrações versionadas, documentação OpenAPI e testes automatizad
 
 Preencher antes da entrega:
 
-1. Nome completo — RM
-2. Nome completo — RM
-3. Nome completo — RM
-4. Nome completo — RM
-5. Nome completo — RM
+1. Enzo Almeida — RM556900
+2. Gabriel de Mello — RM554421
+3. GUilherme Moreira - RM557290
+
 
 ## Tecnologias e versões-base
 
@@ -59,45 +58,146 @@ do springdoc precisam ser ajustados em conjunto (Boot 3.5.x usa starter web e sp
 3. Docker Desktop instalado e aberto (`docker --version` e `docker compose version`).
 4. Git instalado.
 
-## Configuração local — Windows PowerShell
+## Configuração local — Windows (Git Bash ou PowerShell)
 
-Na pasta raiz do repositório:
+### 1. Configurar as variáveis de ambiente
+
+Na pasta raiz do repositório, crie o arquivo `.env` a partir do exemplo.
+
+**Git Bash:**
+
+```bash
+cp .env.example .env
+```
+
+**PowerShell:**
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-O Compose lê o arquivo `.env`, mas o Spring Boot não lê esse arquivo automaticamente.
-Para simplificar a primeira execução, mantenha a senha local padrão `alertasp_local_only`
-(ela coincide com o valor padrão de `application.properties`). Se trocar a senha em
-`.env`, exporte o mesmo valor no PowerShell antes de iniciar a API:
+O Docker Compose utiliza o arquivo `.env`, mas o Spring Boot não lê esse arquivo automaticamente.
 
-```powershell
-$env:DB_PASSWORD = "sua_senha_local"
-```
+A senha `alertasp_local_only` é utilizada exclusivamente no ambiente local de desenvolvimento. Em outros ambientes, configure credenciais próprias e não publique arquivos `.env`.
 
-A senha padrão serve somente para desenvolvimento local. Não use esse valor em ambiente público.
+### 2. Iniciar o PostgreSQL
 
-Suba o PostgreSQL:
+Este projeto utiliza PostgreSQL executado em um container Docker.
 
-```powershell
+A configuração local utiliza:
+
+- **Porta do computador:** `5433`
+- **Porta interna do container:** `5432`
+- **Banco de dados:** `alertasp`
+- **Usuário:** `alertasp`
+- **Senha local:** `alertasp_local_only`
+
+A utilização da porta `5433` evita conflitos com outras instalações do PostgreSQL que possam utilizar a porta `5432` no computador.
+
+Inicie o banco:
+
+```bash
 docker compose up -d postgres
 ```
 
-Confira se o banco está saudável:
+Verifique se o container está funcionando:
 
-```powershell
+```bash
 docker compose ps
 ```
 
-Execute a aplicação:
+O container deverá aparecer com status `healthy`.
+
+### 3. Configurar a conexão do Spring Boot
+
+Como a porta externa do PostgreSQL é `5433`, é necessário configurar a URL de conexão antes de executar a aplicação.
+
+**Git Bash:**
+
+```bash
+export DB_URL=jdbc:postgresql://localhost:5433/alertasp
+export DB_USERNAME=alertasp
+export DB_PASSWORD=alertasp_local_only
+```
+
+**Windows PowerShell:**
+
+```powershell
+$env:DB_URL = "jdbc:postgresql://localhost:5433/alertasp"
+$env:DB_USERNAME = "alertasp"
+$env:DB_PASSWORD = "alertasp_local_only"
+```
+
+Essas variáveis devem ser configuradas no terminal em que a aplicação será iniciada.
+
+### 4. Executar a aplicação
+
+Com o PostgreSQL funcionando e as variáveis de ambiente configuradas, inicie o Spring Boot.
+
+**Git Bash:**
+
+```bash
+mvn.cmd spring-boot:run
+```
+
+**PowerShell:**
 
 ```powershell
 mvn spring-boot:run
 ```
 
-Na primeira inicialização, Flyway executa automaticamente `V1` e `V2`. O Hibernate
-compara as entidades com o schema (`ddl-auto=validate`), mas não cria tabelas.
+Quando aparecer a mensagem `Started AlertaspApplication`, a API estará disponível em:
+
+- **Swagger UI:** http://localhost:8080/swagger-ui.html
+- **Pontos de monitoramento:** http://localhost:8080/api/v1/monitoring-points
+- **Ocorrências:** http://localhost:8080/api/v1/flood-occurrences
+
+### 5. Migrations e persistência de dados
+
+Na primeira inicialização, o Flyway executa automaticamente as migrations:
+
+- `V1__create_core_tables.sql` — criação das tabelas principais.
+- `V2__insert_demonstration_data.sql` — inserção dos registros demonstrativos.
+
+O Hibernate utiliza `ddl-auto=validate` para validar a compatibilidade entre as entidades Java e as tabelas existentes, sem criar automaticamente o esquema do banco.
+
+Os dados persistidos pelo PostgreSQL são mantidos no volume Docker configurado no projeto.
+
+Para verificar o histórico das migrations:
+
+```bash
+docker exec alertasp-postgres psql -U alertasp -d alertasp -c "SELECT installed_rank, version, description, success FROM flyway_schema_history ORDER BY installed_rank;"
+```
+
+### 6. Executar os testes automatizados
+
+**Git Bash:**
+
+```bash
+mvn.cmd clean test
+```
+
+**PowerShell:**
+
+```powershell
+mvn clean test
+```
+
+Os testes automatizados utilizam um banco H2 configurado para testes e não exigem o PostgreSQL em execução.
+
+A execução bem-sucedida deverá apresentar `BUILD SUCCESS`.
+
+### 7. Encerrar o ambiente
+
+Para interromper a aplicação Spring Boot, pressione `Ctrl + C` no terminal em que ela está sendo executada.
+
+Para interromper o PostgreSQL sem excluir os dados:
+
+```bash
+docker compose down
+```
+
+**Atenção:** não utilize `docker compose down -v` se desejar preservar os registros armazenados no volume do banco.
 
 ## Comandos úteis
 
