@@ -1,68 +1,51 @@
-# ALERTASP — API SOA (FIAP Global Solution 2026.2)
+# ALERTASP — API REST | FIAP Global Solution 2026.2
 
-API REST acadêmica para cadastro de pontos de monitoramento e acompanhamento de
-ocorrências de alagamento em São Paulo. O projeto demonstra domínio, persistência
-relacional, migrações versionadas, documentação OpenAPI e testes automatizados.
+**Disciplina:** Arquitetura Orientada a Serviços (SOA) e Web Services  
+**Tema:** CitizenTech — soluções tecnológicas para desafios das cidades  
+**Repositório:** https://github.com/GuiMM27/alertasp-soa
 
-> **Transparência dos dados:** os registros criados pela migration `V2` são fictícios e
-> têm origem `DEMONSTRATION`. Não são dados em tempo real, não foram obtidos do CGE e
-> não representam a ocorrência de alagamentos reais nos endereços indicados.
+## Sobre o projeto
 
-## Ficha CitizenTech (resumo)
+O **ALERTASP** é um protótipo acadêmico de backend para organizar informações sobre pontos de monitoramento e ocorrências de alagamento na cidade de São Paulo. A API permite cadastrar e consultar pontos, registrar ocorrências vinculadas a eles, filtrar registros e acompanhar o status de atendimento.
 
-- **Nome:** ALERTASP.
-- **Cidade:** São Paulo (capital). Os pontos do banco inicial são referências demonstrativas.
-- **Cidadão:** pessoa que circula pela cidade e precisa entender onde há registros de
-  alagamento, qual é o status e quando a informação foi atualizada.
-- **Problema:** durante chuvas intensas, é difícil encontrar em uma experiência clara e
-  localizada informações sobre vias com registros de alagamento, estado da ocorrência
-  e momento da atualização.
-- **Como funciona:** o backend mantém pontos monitorados e ocorrências vinculadas a eles,
-  identificando status, severidade, origem e datas. A API permite consultar, filtrar,
-  cadastrar e atualizar esses registros.
-- **ODS:** ODS 11 e 13 como conexões principais; ODS 3 como complementar. A API não mede
-  redução de acidentes, danos ou impactos climáticos; ela oferece organização da informação.
-- **Limite do protótipo:** não consulta CGE, GeoSampa, INMET, Cemaden ou sensores reais.
+A proposta está relacionada ao **ODS 11 (Cidades e Comunidades Sustentáveis)** e ao **ODS 13 (Ação Contra a Mudança Global do Clima)**, sem alegar impacto real mensurado.
+
+> **Dados demonstrativos:** os registros iniciais e as ocorrências usadas nos testes são fictícios. O sistema não consulta sensores reais, CGE, Cemaden ou serviços meteorológicos e **não fornece alertas em tempo real**.
 
 ## Integrantes
 
-Preencher antes da entrega:
+- Enzo Almeida — RM 556900
+- Gabriel de Mello — RM 554421
+- Guilherme Moreira — RM 557290
 
-1. Enzo Almeida — RM556900
-2. Gabriel de Mello — RM554421
-3. Guilherme Moreira - RM557290
+## Funcionalidades
 
+- **Pontos de monitoramento:** cadastro, listagem paginada, filtros por bairro e situação ativa, e consulta por ID.
+- **Ocorrências de alagamento:** registro associado a um ponto, consulta por ID, listagem com filtros e atualização do status.
+- **Regras de negócio:** uma ocorrência começa em `REPORTED` e só pode seguir transições de status permitidas; alterações inválidas retornam HTTP `409 Conflict`.
+- **Persistência relacional:** PostgreSQL com entidades JPA e relacionamento entre pontos e ocorrências.
+- **Migrações versionadas:** Flyway para criar as tabelas (`V1`) e carregar dados de demonstração (`V2`).
+- **Documentação e qualidade:** OpenAPI/Swagger UI e testes automatizados.
 
-## Tecnologias e versões-base
+**Fluxo de status:** `REPORTED → CONFIRMED → IN_PROGRESS → RESOLVED`. Também é permitido encerrar diretamente uma ocorrência em `REPORTED` ou `CONFIRMED` com `RESOLVED`. `RESOLVED` é um estado final.
 
-- Java 21
-- Spring Boot 4.1.2
-- Maven 3.6.3 ou superior (recomendado: Maven 3.9.x)
-- PostgreSQL 17 (Docker Compose)
-- Spring Data JPA / Hibernate
-- Flyway
-- springdoc-openapi 3.2.0
-- JUnit 6 / Mockito / Spring Boot Test
+## Tecnologias
 
-**Atenção à versão ensinada em aula:** o PDF geral da GS não informa a versão de Java ou
-Spring utilizada nas aulas, e este repositório não contém a tarefa específica do Teams.
-Antes de entregar, confirme com o professor se a turma deve usar Spring Boot 3.x. Se a
-orientação for Boot 3.x, não troque somente a versão do parent: o starter MVC e a versão
-do springdoc precisam ser ajustados em conjunto (Boot 3.5.x usa starter web e springdoc
-2.x; Boot 4.x usa starter webmvc e springdoc 3.x).
+- Java 21 (versão alvo do projeto)
+- Spring Boot 4.1.2; Spring Web MVC; Spring Data JPA / Hibernate
+- PostgreSQL 17 em Docker Compose
+- Flyway para migrações
+- springdoc-openapi 3.2.0 para Swagger/OpenAPI
+- Maven, JUnit, Mockito e Spring Boot Test
+- H2 para testes automatizados
 
-## Pré-requisitos
+## Como executar localmente (Windows)
 
-1. JDK 21 instalado (`java -version`).
-2. Maven 3.6.3+ instalado (`mvn -version`).
-3. Docker Desktop instalado e aberto (`docker --version` e `docker compose version`).
-4. Git instalado.
+**Pré-requisitos:** JDK compatível com Java 21, Maven, Git e Docker Desktop em execução. Execute os comandos na **raiz do projeto**.
 
-## Configuração local — Windows (Git Bash ou PowerShell)
+### 1. Preparar o ambiente
 
-### 1. Configurar as variáveis de ambiente
-
-Na pasta raiz do repositório, crie o arquivo `.env` a partir do exemplo.
+Crie o arquivo de variáveis locais a partir do exemplo, caso ainda não exista:
 
 **Git Bash:**
 
@@ -76,41 +59,20 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-O Docker Compose utiliza o arquivo `.env`, mas o Spring Boot não lê esse arquivo automaticamente.
-
-A senha `alertasp_local_only` é utilizada exclusivamente no ambiente local de desenvolvimento. Em outros ambientes, configure credenciais próprias e não publique arquivos `.env`.
+O Docker Compose lê `.env` automaticamente, mas o Spring Boot **não**. O `.env` é ignorado pelo Git. A senha de demonstração `alertasp_local_only` deve ser usada **apenas no desenvolvimento local**.
 
 ### 2. Iniciar o PostgreSQL
 
-Este projeto utiliza PostgreSQL executado em um container Docker.
-
-A configuração local utiliza:
-
-- **Porta do computador:** `5433`
-- **Porta interna do container:** `5432`
-- **Banco de dados:** `alertasp`
-- **Usuário:** `alertasp`
-- **Senha local:** `alertasp_local_only`
-
-A utilização da porta `5433` evita conflitos com outras instalações do PostgreSQL que possam utilizar a porta `5432` no computador.
-
-Inicie o banco:
-
 ```bash
 docker compose up -d postgres
-```
-
-Verifique se o container está funcionando:
-
-```bash
 docker compose ps
 ```
 
-O container deverá aparecer com status `healthy`.
+Confira se `alertasp-postgres` aparece como **healthy**. O projeto publica a porta **5433 no computador**, mapeada para a porta **5432 dentro do container**, para evitar conflito com outro PostgreSQL local.
 
-### 3. Configurar a conexão do Spring Boot
+Credenciais locais: banco `alertasp`, usuário `alertasp` e senha `alertasp_local_only`.
 
-Como a porta externa do PostgreSQL é `5433`, é necessário configurar a URL de conexão antes de executar a aplicação.
+### 3. Configurar e iniciar a API
 
 **Git Bash:**
 
@@ -118,58 +80,27 @@ Como a porta externa do PostgreSQL é `5433`, é necessário configurar a URL de
 export DB_URL=jdbc:postgresql://localhost:5433/alertasp
 export DB_USERNAME=alertasp
 export DB_PASSWORD=alertasp_local_only
-```
-
-**Windows PowerShell:**
-
-```powershell
-$env:DB_URL = "jdbc:postgresql://localhost:5433/alertasp"
-$env:DB_USERNAME = "alertasp"
-$env:DB_PASSWORD = "alertasp_local_only"
-```
-
-Essas variáveis devem ser configuradas no terminal em que a aplicação será iniciada.
-
-### 4. Executar a aplicação
-
-Com o PostgreSQL funcionando e as variáveis de ambiente configuradas, inicie o Spring Boot.
-
-**Git Bash:**
-
-```bash
 mvn.cmd spring-boot:run
 ```
 
 **PowerShell:**
 
 ```powershell
+$env:DB_URL = "jdbc:postgresql://localhost:5433/alertasp"
+$env:DB_USERNAME = "alertasp"
+$env:DB_PASSWORD = "alertasp_local_only"
 mvn spring-boot:run
 ```
 
-Quando aparecer a mensagem `Started AlertaspApplication`, a API estará disponível em:
+Após a mensagem `Started AlertaspApplication`, acesse:
 
 - **Swagger UI:** http://localhost:8080/swagger-ui.html
-- **Pontos de monitoramento:** http://localhost:8080/api/v1/monitoring-points
-- **Ocorrências:** http://localhost:8080/api/v1/flood-occurrences
+- **Especificação OpenAPI:** http://localhost:8080/v3/api-docs
+- **API:** http://localhost:8080/api/v1/monitoring-points
 
-### 5. Migrations e persistência de dados
+Na primeira inicialização, o Flyway aplica as migrações pendentes. O Hibernate utiliza `ddl-auto=validate`, ou seja, **valida** o esquema do banco, sem criar tabelas automaticamente.
 
-Na primeira inicialização, o Flyway executa automaticamente as migrations:
-
-- `V1__create_core_tables.sql` — criação das tabelas principais.
-- `V2__insert_demonstration_data.sql` — inserção dos registros demonstrativos.
-
-O Hibernate utiliza `ddl-auto=validate` para validar a compatibilidade entre as entidades Java e as tabelas existentes, sem criar automaticamente o esquema do banco.
-
-Os dados persistidos pelo PostgreSQL são mantidos no volume Docker configurado no projeto.
-
-Para verificar o histórico das migrations:
-
-```bash
-docker exec alertasp-postgres psql -U alertasp -d alertasp -c "SELECT installed_rank, version, description, success FROM flyway_schema_history ORDER BY installed_rank;"
-```
-
-### 6. Executar os testes automatizados
+### 4. Executar os testes automatizados
 
 **Git Bash:**
 
@@ -183,98 +114,49 @@ mvn.cmd clean test
 mvn clean test
 ```
 
-Os testes automatizados utilizam um banco H2 configurado para testes e não exigem o PostgreSQL em execução.
+Os testes usam H2 e não precisam do PostgreSQL em execução. Verifique se o terminal mostra `BUILD SUCCESS`. Os testes contemplam regras de status, serviços e integração HTTP/OpenAPI.
 
-A execução bem-sucedida deverá apresentar `BUILD SUCCESS`.
+### 5. Encerrar
 
-### 7. Encerrar o ambiente
-
-Para interromper a aplicação Spring Boot, pressione `Ctrl + C` no terminal em que ela está sendo executada.
-
-Para interromper o PostgreSQL sem excluir os dados:
+Interrompa a API com `Ctrl + C` e, se desejar parar o banco, execute:
 
 ```bash
 docker compose down
 ```
 
-**Atenção:** não utilize `docker compose down -v` se desejar preservar os registros armazenados no volume do banco.
+Esse comando preserva o volume com os dados locais. **Não utilize `docker compose down -v` se quiser preservar os registros.**
 
-## Comandos úteis
+## Endpoints da API
 
-Executar todos os testes (usa H2 somente no perfil de teste):
-
-```powershell
-mvn test
-```
-
-Gerar o JAR executável:
-
-```powershell
-mvn clean package
-```
-
-Executar o JAR:
-
-```powershell
-java -jar target/alertasp-soa-1.0.0.jar
-```
-
-Parar o banco:
-
-```powershell
-docker compose down
-```
-
-Apagar também os dados persistidos do banco local (ação destrutiva):
-
-```powershell
-docker compose down -v
-```
-
-## Endereços locais
-
-- API: `http://localhost:8080`
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
-
-## Endpoints
-
-| Método | Caminho | Descrição |
+| Método | Endpoint | Finalidade |
 |---|---|---|
-| GET | `/api/v1/monitoring-points` | Lista pontos; filtros `neighborhood`, `active`; paginação `page`, `size`, `sort` |
-| GET | `/api/v1/monitoring-points/{id}` | Busca ponto por ID |
-| POST | `/api/v1/monitoring-points` | Cadastra ponto |
-| GET | `/api/v1/flood-occurrences` | Lista ocorrências; filtros `status`, `neighborhood`, `from`, `to`; paginação |
-| GET | `/api/v1/flood-occurrences/{id}` | Busca ocorrência por ID |
-| POST | `/api/v1/flood-occurrences` | Registra ocorrência (status inicial `REPORTED`) |
-| PATCH | `/api/v1/flood-occurrences/{id}/status` | Atualiza status respeitando transições permitidas |
+| `GET` | `/api/v1/monitoring-points` | Lista pontos; filtros `neighborhood`, `active`, `page`, `size`, `sort` |
+| `GET` | `/api/v1/monitoring-points/{id}` | Consulta um ponto pelo ID |
+| `POST` | `/api/v1/monitoring-points` | Cadastra um ponto |
+| `GET` | `/api/v1/flood-occurrences` | Lista ocorrências; filtros de status, bairro e período, com paginação |
+| `GET` | `/api/v1/flood-occurrences/{id}` | Consulta uma ocorrência pelo ID |
+| `POST` | `/api/v1/flood-occurrences` | Registra uma ocorrência com status inicial `REPORTED` |
+| `PATCH` | `/api/v1/flood-occurrences/{id}/status` | Atualiza o status conforme as regras do domínio |
 
-### Exemplo: cadastrar uma ocorrência
+Os principais códigos HTTP utilizados são `200 OK`, `201 Created`, `400 Bad Request`, `404 Not Found` e `409 Conflict`. As respostas dos endpoints estão documentadas no Swagger.
 
-```http
-POST /api/v1/flood-occurrences
-Content-Type: application/json
-```
+### Exemplo: registrar uma ocorrência fictícia
+
+`POST /api/v1/flood-occurrences`
 
 ```json
 {
   "monitoringPointId": 1,
-  "description": "Exemplo acadêmico de acúmulo de água na via.",
+  "description": "DEMO - Acumulo de agua na via apos chuva intensa.",
   "severity": "MEDIUM",
   "source": "DEMONSTRATION",
-  "occurredAt": "2026-11-05T12:00:00-03:00"
+  "occurredAt": "2026-11-08T04:47:37.065Z"
 }
 ```
 
-Resposta esperada: HTTP `201 Created`, corpo contendo `status: REPORTED`, origem e
-horários. O ID `1` é criado pela migration de demonstração em um banco vazio.
+Resposta esperada: HTTP `201 Created`, com ID gerado automaticamente e status `REPORTED`. Em uma instalação nova, o ponto de ID `1` é inserido pela migration `V2`.
 
-### Exemplo: atualizar status
-
-```http
-PATCH /api/v1/flood-occurrences/1/status
-Content-Type: application/json
-```
+Para atualizar uma ocorrência que esteja em `REPORTED`, envie `PATCH /api/v1/flood-occurrences/{id}/status` com:
 
 ```json
 {
@@ -282,99 +164,50 @@ Content-Type: application/json
 }
 ```
 
-Resposta esperada: HTTP `200 OK`. Uma transição inválida retorna `409 Conflict`.
+Uma transição proibida (por exemplo, `CONFIRMED → REPORTED`) retorna HTTP `409 Conflict`.
 
-### Exemplo: filtrar ocorrências
+## Banco de dados e migrações
 
-```http
-GET /api/v1/flood-occurrences?status=REPORTED&neighborhood=Bela%20Vista&page=0&size=10
+As migrações encontram-se em `src/main/resources/db/migration/`:
+
+- `V1__create_core_tables.sql` — tabelas, relacionamentos, restrições e índices.
+- `V2__insert_demonstration_data.sql` — pontos e ocorrências fictícios para demonstração.
+
+Para verificar as versões aplicadas no PostgreSQL:
+
+```bash
+docker exec alertasp-postgres psql -U alertasp -d alertasp -c "SELECT installed_rank, version, description, success FROM flyway_schema_history ORDER BY installed_rank;"
 ```
 
-Intervalo de data/hora deve ser enviado em ISO-8601 com fuso, por exemplo:
+Mudanças posteriores no esquema devem ser criadas em novas migrações (`V3__...sql`, por exemplo), sem alterar versões já executadas.
 
-```http
-GET /api/v1/flood-occurrences?from=2026-11-01T00:00:00-03:00&to=2026-11-06T23:59:59-03:00
-```
-
-## Estrutura do projeto
+## Organização do repositório
 
 ```text
-src/
-  main/
-    java/br/com/alertasp/soa/
-      config/       # Clock e metadados OpenAPI
-      controller/   # Endpoints REST
-      dto/          # Contratos HTTP de entrada e saída
-      entity/       # Entidades JPA
-      enums/        # Status, severidade e origem
-      exception/    # Erros de domínio e tratamento HTTP
-      repository/   # Interfaces Spring Data JPA
-      service/      # Regras de negócio e casos de uso
-    resources/
-      db/migration/ # V1 schema; V2 dados fictícios
-      application.properties
-      application-test.properties
-  test/java/        # Testes unitários e integração HTTP
+src/main/java/br/com/alertasp/soa/
+  controller/    Endpoints REST e documentação OpenAPI
+  service/       Regras de negócio
+  repository/    Acesso aos dados
+  entity/        Entidades JPA
+  dto/           Contratos de entrada e saída
+  enums/         Status, gravidade e origem
+  exception/     Tratamento de erros
+  config/        Configurações
+src/main/resources/db/migration/   Migrações Flyway
+src/test/java/                 Testes automatizados
+docs/                          Documentação complementar
+requests/                      Exemplos de requisições HTTP
+evidencias/                    Capturas reais e índice de evidências
 ```
 
-## Migrações Flyway
+Documentação complementar: [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md), [`docs/CRITERIOS_DE_ACEITE.md`](docs/CRITERIOS_DE_ACEITE.md) e [`docs/MATRIZ_RUBRICA.md`](docs/MATRIZ_RUBRICA.md).
 
-- `V1__create_core_tables.sql`: cria tabelas, chaves estrangeiras, checks e índices.
-- `V2__insert_demonstration_data.sql`: adiciona dados explicitamente demonstrativos.
+## Evidências da execução
 
-Para provar a migração, suba um banco vazio com `docker compose down -v`, inicie-o e
-execute a aplicação. Consulte a tabela `flyway_schema_history` no PostgreSQL e registre
-as duas versões aplicadas. Em equipes, não edite uma migration já aplicada: crie
-`V3__...sql` para qualquer alteração posterior.
+As capturas reais da API, do PostgreSQL, do Flyway, do Swagger, dos testes e do Docker estão em [`evidencias/`](evidencias/). Consulte o [índice de evidências](evidencias/INDICE_DAS_EVIDENCIAS.md) para identificar cada imagem e o critério técnico que demonstra.
 
-## Testes incluídos
+## Limitações do protótipo
 
-- `OccurrenceStatusTest`: valida as transições possíveis e o caráter final de `RESOLVED`.
-- `FloodOccurrenceServiceTest`: verifica status inicial, referência obrigatória a ponto
-  existente e bloqueio de transição inválida.
-- `ApiIntegrationTest`: sobe o contexto Spring com H2, executa migrations, consulta
-  registros, testa criação de ocorrência, erro 404 e disponibilidade do OpenAPI.
+Este backend não realiza medições ou previsões de alagamento, não envia alertas reais e não valida a origem declarada dos relatos. Não possui autenticação/autorização para uso público. Uma implantação de produção exigiria integração com fontes oficiais, controle de acesso, auditoria e validação dos dados.
 
-H2 é utilizado apenas para automatizar testes sem exigir Docker. A configuração padrão
-(`application.properties`) usa PostgreSQL. Os valores `source` (`CITIZEN_REPORT`,
-`FIELD_AGENT`, `SENSOR`, `PUBLIC_DATA`) são rótulos informados pela requisição; esta versão
-não autentica nem verifica a identidade/origem de quem os declarou. Para uso real, isso
-exigiria autenticação, autorização e trilha de auditoria.
-
-Esta API é um protótipo acadêmico sem autenticação. Não a exponha publicamente nem envie
-informações pessoais; uma implantação real exigiria controles de acesso e proteção adicional.
-
-## Evidências para a entrega
-
-Salvar em `evidencias/` (criar a pasta) capturas reais feitas pela equipe:
-
-1. Terminal com `docker compose ps` mostrando PostgreSQL saudável.
-2. Terminal com `mvn test` concluído sem falhas.
-3. Terminal/log mostrando Flyway aplicando V1 e V2.
-4. PostgreSQL mostrando `monitoring_points`, `flood_occurrences` e `flyway_schema_history`.
-5. Swagger UI aberto, com os sete endpoints documentados.
-6. POST de ocorrência com resposta `201` e GET mostrando o registro persistido.
-7. Tentativa de transição inválida com resposta `409`.
-
-Não crie prints ilustrativos e os apresente como evidência real. As evidências devem ser
-capturadas depois de executar a aplicação no computador de alguém da equipe.
-
-## Checklist antes do envio
-
-- [ ] Confirmar a versão de Java/Spring orientada pelo professor.
-- [ ] Substituir os nomes/RMs dos integrantes neste README.
-- [ ] Executar `docker compose up -d postgres`.
-- [ ] Executar `mvn clean test` e guardar a saída real.
-- [ ] Executar a aplicação e verificar Swagger UI.
-- [ ] Demonstrar inserção e leitura no PostgreSQL.
-- [ ] Mostrar `flyway_schema_history` com V1 e V2.
-- [ ] Adicionar evidências reais ao repositório.
-- [ ] Conferir se o repositório está público ou acessível ao avaliador.
-- [ ] Enviar o link na tarefa de SOA no Teams/Portal até 19/11/2026 às 23h55.
-
-## Referências técnicas
-
-- Spring Boot system requirements: https://docs.spring.io/spring-boot/system-requirements.html
-- Spring Boot build systems: https://docs.spring.io/spring-boot/reference/using/build-systems.html
-- springdoc compatibility matrix: https://springdoc.org/faq.html
-- Flyway documentation: https://documentation.red-gate.com/flyway
+**Entrega:** repositório público com código completo, README, documentação Swagger e evidências da aplicação, conforme a atividade de SOA da FIAP Global Solution 2026.2.
